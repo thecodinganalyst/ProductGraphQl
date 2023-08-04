@@ -1,0 +1,34 @@
+type Category {
+    name: String
+    subCategories: [Category!]
+}
+
+type Variant {
+    name: String!
+    options: [String!]
+}
+
+type Product {
+    id: String!
+    name: String!
+    description: String
+    imageUrls: [String!]
+    category: String
+    tags: [String!]
+    variants: [Variant!]
+}
+
+type Query {
+    getCategories: [Category!]
+    getCategory(categoryHierarchy: [String!]): Category!
+}
+
+input CategoryInput {
+    name: String!
+    subCategories: [CategoryInput!]
+}
+
+type Mutation {
+    addTopCategory(category: CategoryInput): Category
+    addCategoryToExisting(newCategory: CategoryInput, existingCategory: [String!]): Category
+}

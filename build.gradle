@@ -28,6 +28,9 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok:1.18.28'
     annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    testCompileOnly 'org.projectlombok:lombok:1.18.28'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test:3.0.8'
     testImplementation 'io.projectreactor:reactor-test:3.5.8'
     testImplementation 'org.springframework.graphql:spring-graphql-test:1.2.2'

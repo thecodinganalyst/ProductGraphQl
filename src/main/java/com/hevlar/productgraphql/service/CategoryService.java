@@ -22,8 +22,16 @@ public class CategoryService {
     }
 
     public Mono<Category> addTopCategory(Category category){
-        Category newCategory = Category.deepCopyCategory(category);
-        return categoryRepository.save(newCategory);
+        if (category == null || category.name() == null) {
+            return Mono.error(new IllegalArgumentException("Invalid category"));
+        }
+        return categoryRepository.findByName(category.name())
+                .flatMap(existingCategory -> Mono.<Category>error(new IllegalArgumentException("A category with this name already exists")))
+                .switchIfEmpty(Mono.defer(() -> {
+                    Category newCategory = Category.deepCopyCategory(category);
+                    return categoryRepository.save(newCategory);
+                }));
+
     }
 
     public Mono<Category> getCategory(List<String> categoryHierarchy){
@@ -38,15 +46,23 @@ public class CategoryService {
 
     public Mono<Category> addCategoryToExisting(Category newCategory, List<String> existingCategory){
         if(newCategory == null) throw new IllegalArgumentException("New category is null");
-        if(existingCategory == null || existingCategory.size() == 0) addTopCategory(newCategory);
+        if(existingCategory == null || existingCategory.size() == 0) return addTopCategory(newCategory);
 
         return categoryRepository.findByName(existingCategory.get(0))
-                .map(category -> {
-                    Category target = findTargetCategory(category, existingCategory.subList(1, existingCategory.size()));
-                    target.subCategories().add(Category.deepCopyCategory(newCategory));
-                    categoryRepository.save(category);
-                    return category;
-                });
+                .switchIfEmpty(Mono.error(() -> new IllegalArgumentException("Existing category not found")))
+                .flatMap(category ->
+                    Mono.defer(() -> {
+                        Category target = findTargetCategory(category, existingCategory.subList(1, existingCategory.size()));
+                        if(target.subCategories()
+                                .stream()
+                                .map(Category::name)
+                                .anyMatch(name -> name.equals(newCategory.name()))){
+                            throw new IllegalArgumentException("New category already exists");
+                        }
+                        target.subCategories().add(Category.deepCopyCategory(newCategory));
+                        return categoryRepository.save(category);
+                    })
+                );
     }
 
     private Category findTargetCategory(Category currentCategory, List<String> subCategoryNames){

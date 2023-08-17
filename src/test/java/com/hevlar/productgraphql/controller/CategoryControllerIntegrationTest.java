@@ -1,15 +1,12 @@
 package com.hevlar.productgraphql.controller;
 
 import com.hevlar.productgraphql.MongoDBTestContainerConfig;
-import com.hevlar.productgraphql.ProductGraphQlApplication;
 import com.hevlar.productgraphql.model.Category;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -18,28 +15,21 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = ProductGraphQlApplication.class)
+@SpringBootTest
+@AutoConfigureWebTestClient
 @AutoConfigureHttpGraphQlTester
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Testcontainers
-@Slf4j
 @ContextConfiguration(classes = MongoDBTestContainerConfig.class)
-public class CategoryControllerTest {
-
-    @Autowired
-    ApplicationContext applicationContext;
+public class CategoryControllerIntegrationTest {
 
     @Autowired
     HttpGraphQlTester httpGraphQlTester;
 
-    @Autowired
-    Environment environment;
-
     @Test
     @Order(1)
     public void testAddTopCategory() {
-        log.info(environment.getProperty("spring.data.mongodb.port"));
         Category category = this.httpGraphQlTester.document(
                         """
                         mutation {

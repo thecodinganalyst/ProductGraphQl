@@ -22,7 +22,7 @@ public class CategoryService {
     }
 
     public Mono<Category> addTopCategory(Category category){
-        if (category == null || category.name() == null) {
+        if (category == null || category.name() == null || category.name().trim().length() == 0) {
             return Mono.error(new IllegalArgumentException("Invalid category"));
         }
         return categoryRepository.findByName(category.name())

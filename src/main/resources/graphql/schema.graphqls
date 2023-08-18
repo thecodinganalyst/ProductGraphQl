@@ -1,5 +1,5 @@
 type Category {
-    name: String
+    name: String!
     subCategories: [Category!]
 }
 

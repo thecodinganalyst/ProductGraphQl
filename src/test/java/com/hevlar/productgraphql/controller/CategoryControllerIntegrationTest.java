@@ -12,6 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +30,7 @@ public class CategoryControllerIntegrationTest {
 
     @Test
     @Order(1)
-    public void testAddTopCategory() {
+    public void whenAddTopCategory_shouldWork() {
         Category category = this.httpGraphQlTester.document(
                         """
                         mutation {
@@ -63,6 +64,33 @@ public class CategoryControllerIntegrationTest {
 
     @Test
     @Order(2)
+    public void givenCategoryIsNull_whenAddTopCategory_shouldThrowError() {
+        this.httpGraphQlTester.document(
+                        """
+                        mutation {
+                            addTopCategory(category: {
+                                name: "",
+                                subCategories: [
+                                    {name: "Living Room"},
+                                    {name: "Kitchen"}
+                                ]
+                            }){
+                                name
+                                subCategories{
+                                    name
+                                }
+                            }
+                        }
+                        """
+                )
+                .execute()
+                .errors()
+                .expect(error -> Objects.equals(error.getMessage(), "Invalid category"))
+                .verify();
+    }
+
+    @Test
+    @Order(3)
     public void testAddCategoryToExisting() {
         Category category = this.httpGraphQlTester.document(
                         """

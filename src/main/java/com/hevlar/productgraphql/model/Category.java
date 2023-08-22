@@ -1,42 +1,58 @@
 package com.hevlar.productgraphql.model;
 
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Document
-public record Category(
-        @Id
-        String id,
-        String name,
-        List<Category> subCategories
-) {
+@Data
+public class Category{
+    @Id
+    String id;
+    String name;
+    List<Category> subCategories;
 
-    // Utility method for deep copying a Category object
-    public static Category deepCopyCategory(Category originalCategory) {
-        if (originalCategory == null) {
-            return null;
-        } else {
-            return new Category(
-                    originalCategory.id(),
-                    originalCategory.name(),
-                    deepCopySubCategories(originalCategory.subCategories())
-            );
-        }
+    public Category(String id, String name, List<Category> subCategories){
+        this.id = id;
+        this.name = name;
+        this.subCategories = subCategories != null ? subCategories : List.of();
     }
 
-    // Helper method to make a deep copy of the subCategories list
-    private static List<Category> deepCopySubCategories(List<Category> originalList) {
-        if (originalList == null) {
-            return List.of();
-        } else {
-            List<Category> newList = new ArrayList<>();
-            for (Category subCategory : originalList) {
-                newList.add(deepCopyCategory(subCategory)); // Recursive call to copy subCategory
+    public boolean hasSubCategoryOfName(String name){
+        for (Category sub: subCategories) {
+            if(sub.name.equals(name)){
+                return true;
             }
-            return newList;
         }
+        return false;
+    }
+
+    public Category traverse(List<String> subCategoryNames){
+        if(subCategoryNames == null || subCategoryNames.size() == 0) return this;
+        for(Category subCategory: subCategories){
+            if(subCategory.getName().equals(subCategoryNames.get(0))){
+                if(subCategoryNames.size() > 1){
+                    return traverse(subCategory, subCategoryNames.subList(1, subCategoryNames.size()));
+                }else {
+                    return subCategory;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Existing category provided doesn't exist");
+    }
+
+    private Category traverse(Category category, List<String> subCategoryNames){
+        for(Category subCategory: category.subCategories){
+            if(subCategory.getName().equals(subCategoryNames.get(0))){
+                if(subCategoryNames.size() > 1){
+                    return traverse(subCategory, subCategoryNames.subList(1, subCategoryNames.size()));
+                }else {
+                    return subCategory;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Existing category provided doesn't exist");
     }
 }

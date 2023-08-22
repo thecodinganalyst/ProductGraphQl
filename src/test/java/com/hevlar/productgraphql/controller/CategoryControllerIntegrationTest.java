@@ -57,8 +57,8 @@ public class CategoryControllerIntegrationTest {
                 .get();
         assertThat(category).hasFieldOrPropertyWithValue("name", "Furniture");
         assertThat(category).hasFieldOrProperty("subCategories");
-        assertThat(category.subCategories()).hasSize(2);
-        List<String> subCategoryNames = category.subCategories().stream().map(Category::name).toList();
+        assertThat(category.getSubCategories()).hasSize(2);
+        List<String> subCategoryNames = category.getSubCategories().stream().map(Category::getName).toList();
         assertThat(subCategoryNames).hasSameElementsAs(List.of("Kitchen", "Living Room"));
     }
 
@@ -91,7 +91,30 @@ public class CategoryControllerIntegrationTest {
 
     @Test
     @Order(3)
-    public void testAddCategoryToExisting() {
+    public void givenTopCategoryExists_whenAddTopCategory_shouldThrow() {
+        this.httpGraphQlTester.document(
+                        """
+                        mutation {
+                            addTopCategory(category: {
+                                name: "Furniture"
+                            }){
+                                name
+                                subCategories{
+                                    name
+                                }
+                            }
+                        }
+                        """
+                )
+                .execute()
+                .errors()
+                .expect(error -> Objects.equals(error.getMessage(), "A category with this name already exists"))
+                .verify();
+    }
+
+    @Test
+    @Order(4)
+    public void whenAddCategoryToExisting_shouldWork() {
         Category category = this.httpGraphQlTester.document(
                         """
                         mutation {
@@ -109,6 +132,12 @@ public class CategoryControllerIntegrationTest {
                                 name
                                 subCategories {
                                     name
+                                    subCategories {
+                                        name
+                                        subCategories {
+                                            name
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -123,16 +152,53 @@ public class CategoryControllerIntegrationTest {
 
 
         assertThat(category).hasFieldOrPropertyWithValue("name", "Furniture");
-//        Category livingRoomCategory = category.subCategories()
-//                .stream()
-//                .filter(cat -> cat.name().equals("Living Room"))
-//                .findFirst()
-//                .get();
-//        Category sofaCategory = livingRoomCategory.subCategories().get(0);
-//        assertThat(sofaCategory).hasFieldOrPropertyWithValue("name", "Sofa");
-//        assertThat(sofaCategory.subCategories()).hasSize(3);
-//        List<String> sofaSubCategoryNames = sofaCategory.subCategories().stream().map(Category::name).toList();
-//        assertThat(sofaSubCategoryNames).hasSameElementsAs(List.of("2-seater", "3-seater", "L-Shape"));
+        Category livingRoomCategory = category.getSubCategories()
+                .stream()
+                .filter(cat -> cat.getName().equals("Living Room"))
+                .findFirst()
+                .orElseThrow();
+        Category sofaCategory = livingRoomCategory.getSubCategories().get(0);
+        assertThat(sofaCategory).hasFieldOrPropertyWithValue("name", "Sofa");
+        assertThat(sofaCategory.getSubCategories()).hasSize(3);
+        List<String> sofaSubCategoryNames = sofaCategory.getSubCategories().stream().map(Category::getName).toList();
+        assertThat(sofaSubCategoryNames).hasSameElementsAs(List.of("2-seater", "3-seater", "L-Shape"));
+    }
+
+    @Test
+    @Order(5)
+    public void givenExistingCategoryDoesNotExist_whenAddCategoryToExisting_shouldThrowError() {
+        this.httpGraphQlTester.document(
+                        """
+                        mutation {
+                            addCategoryToExisting(
+                                newCategory: {
+                                    name: "Sofa"
+                                    subCategories: [
+                                        { name: "2-seater" },
+                                        { name: "3-seater" },
+                                        { name: "L-Shape" }
+                                    ]
+                                },
+                                existingCategory: ["Furniture", "Garage"]
+                            ){
+                                name
+                                subCategories {
+                                    name
+                                    subCategories {
+                                        name
+                                        subCategories {
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        """
+                )
+                .execute()
+                .errors()
+                .expect(error -> Objects.equals(error.getMessage(), "Existing category provided doesn't exist"))
+                .verify();
 
     }
 }

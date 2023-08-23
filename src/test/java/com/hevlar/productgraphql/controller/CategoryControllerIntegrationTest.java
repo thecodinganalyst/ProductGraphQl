@@ -201,4 +201,66 @@ public class CategoryControllerIntegrationTest {
                 .verify();
 
     }
+
+    @Test
+    @Order(6)
+    public void whenGetCategories_shouldGetResultCorrectly() {
+        List<Category> categoryList = this.httpGraphQlTester.document(
+                """
+                query {
+                    getCategories {
+                        name
+                        subCategories {
+                            name
+                            subCategories {
+                                name
+                            }
+                        }
+                    }
+                }
+                """
+        ).execute()
+                .errors()
+                .verify()
+                .path("getCategories")
+                .entityList(Category.class)
+                .get();
+        assertThat(categoryList.size()).isEqualTo(1);
+        Category furniture = categoryList.get(0);
+        assertThat(furniture.getName()).isEqualTo("Furniture");
+        assertThat(furniture.getSubCategories().size()).isEqualTo(2);
+        Category livingRoom = furniture.traverse(List.of("Living Room"));
+        assertThat(livingRoom.getSubCategories().size()).isEqualTo(1);
+        Category sofa = livingRoom.getSubCategories().get(0);
+        assertThat(sofa.getName()).isEqualTo("Sofa");
+    }
+
+    @Test
+    @Order(7)
+    public void whenGetCategory_shouldReturnCorrectCategory(){
+        Category sofa = this.httpGraphQlTester.document(
+                        """
+                        query {
+                            getCategory(categoryHierarchy: ["Furniture", "Living Room", "Sofa"]) {
+                                name
+                                subCategories {
+                                    name
+                                }
+                            }
+                        }
+                        """
+                ).execute()
+                .errors()
+                .verify()
+                .path("getCategory")
+                .entity(Category.class)
+                .get();
+        assertThat(sofa.getName()).isEqualTo("Sofa");
+        assertThat(sofa.getSubCategories().size()).isEqualTo(3);
+        List<Category> sofaList = sofa.getSubCategories();
+        assertThat(sofaList).anyMatch(category -> category.getName().equals("2-seater"));
+        assertThat(sofaList).anyMatch(category -> category.getName().equals("3-seater"));
+        assertThat(sofaList).anyMatch(category -> category.getName().equals("L-Shape"));
+    }
+
 }

@@ -3,9 +3,14 @@ type Category {
     subCategories: [Category!]
 }
 
+type Attribute {
+    key: String!
+    value: String!
+}
+
 type Variant {
     name: String!
-    options: [String!]
+    attributeList: [Attribute!]
 }
 
 type Product {
@@ -13,7 +18,7 @@ type Product {
     name: String!
     description: String
     imageUrls: [String!]
-    category: String
+    category: Category
     tags: [String!]
     variants: [Variant!]
 }

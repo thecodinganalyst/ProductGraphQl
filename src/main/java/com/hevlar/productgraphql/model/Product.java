@@ -4,6 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @Document
 public record Product(
     @Id
@@ -11,10 +13,10 @@ public record Product(
     @Indexed
     String name,
     String description,
-    String[] imageUrls,
+    List<String> imageUrls,
     @Indexed
-    String category,
+    Category category,
     @Indexed
-    String[] tags,
-    Variant[] variants
+    List<String> tags,
+    List<Variant> variants
 ) { }

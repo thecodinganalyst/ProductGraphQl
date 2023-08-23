@@ -1,7 +1,9 @@
 package com.hevlar.productgraphql.model;
 
+import java.util.List;
+
 public record Variant(
         String name,
-        String[] options
+        List<Attribute> attributeList
 ) {
 }

@@ -1,7 +1,11 @@
 package com.hevlar.productgraphql.service;
 
+import com.hevlar.productgraphql.model.Product;
 import com.hevlar.productgraphql.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -14,10 +18,9 @@ public class ProductService {
         this.categoryService = categoryService;
     }
 
-//    public List<Product> getProductsByCategory(List<String> categoryHierarchy){
-//        categoryService.getCategory(categoryHierarchy)
-//                .map(category -> productRepository.find)
-//
-//    }
+    public Flux<Product> getProductsByCategory(List<String> categoryHierarchy){
+        return categoryService.getCategory(categoryHierarchy)
+                .flatMapMany(productRepository::findAllByCategory);
+    }
 
 }

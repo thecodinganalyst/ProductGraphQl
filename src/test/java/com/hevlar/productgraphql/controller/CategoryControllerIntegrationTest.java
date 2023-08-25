@@ -2,6 +2,7 @@ package com.hevlar.productgraphql.controller;
 
 import com.hevlar.productgraphql.MongoDBTestContainerConfig;
 import com.hevlar.productgraphql.model.Category;
+import com.hevlar.productgraphql.repository.CategoryRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
@@ -27,6 +28,14 @@ public class CategoryControllerIntegrationTest {
 
     @Autowired
     HttpGraphQlTester httpGraphQlTester;
+
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @AfterAll
+    public void tearDown() {
+        categoryRepository.deleteAll().block();
+    }
 
     @Test
     @Order(1)

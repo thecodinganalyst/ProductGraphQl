@@ -26,6 +26,7 @@ type Product {
 type Query {
     getCategories: [Category!]
     getCategory(categoryHierarchy: [String!]): Category!
+    getProductsByCategory(categoryHierarchy: [String!]): [Product!]
 }
 
 input CategoryInput {

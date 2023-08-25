@@ -1,6 +1,7 @@
 package com.hevlar.productgraphql.repository;
 
 import com.hevlar.productgraphql.model.Category;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,11 @@ class CategoryRepositoryTest {
                 new Category("1", "Furniture", List.of()),
                 new Category("2", "Electronics", List.of())
         )).blockLast();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        categoryRepository.deleteAll().block();
     }
 
     @Test

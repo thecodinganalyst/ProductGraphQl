@@ -3,6 +3,7 @@ package com.hevlar.productgraphql.service;
 import com.hevlar.productgraphql.model.Category;
 import com.hevlar.productgraphql.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,14 +32,26 @@ public class CategoryService {
                 .switchIfEmpty(Mono.defer(() -> categoryRepository.save(category)));
     }
 
-    public Mono<Category> getCategory(List<String> categoryHierarchy){
-        if(categoryHierarchy == null || categoryHierarchy.size() == 0)
+    public Mono<Category> getTopCategory(String categoryName){
+        if(categoryName == null || categoryName.trim().length() == 0)
+            return Mono.error(new IllegalArgumentException("Category name is missing"));
+
+        return categoryRepository.findByName(categoryName);
+    }
+
+    public Mono<Category> validateCategoryHierarchy(List<String> categoryHierarchy){
+        if(CollectionUtils.isEmpty(categoryHierarchy))
             return Mono.error(new IllegalArgumentException("Category hierarchy is missing"));
 
-        return categoryRepository.findByName(categoryHierarchy.get(0))
-                .map(category ->
-                        category.traverse(categoryHierarchy.subList(1, categoryHierarchy.size()))
-                );
+        return getTopCategory(categoryHierarchy.get(0))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Category not found")))
+                .map(category -> {
+                    if(categoryHierarchy.size() > 1){
+                        return category.traverse(categoryHierarchy.subList(1, categoryHierarchy.size()));
+                    }else{
+                        return category;
+                    }
+                });
     }
 
     public Mono<Category> addCategoryToExisting(Category newCategory, List<String> existingCategory){
@@ -49,7 +62,7 @@ public class CategoryService {
                 .switchIfEmpty(Mono.error(() -> new IllegalArgumentException("Existing category not found")))
                 .flatMap(category -> {
                     Category target = category.traverse(existingCategory.subList(1, existingCategory.size()));
-                    if(target.hasSubCategoryOfName(newCategory.getName())){
+                    if(target.hasSubCategory(newCategory.getName())){
                         return Mono.error(new IllegalArgumentException("New category already exists"));
                     }
                     List<Category> updatedSubCategoryList = new ArrayList<>(target.getSubCategories());

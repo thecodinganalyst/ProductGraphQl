@@ -24,10 +24,6 @@ public class CategoryController {
         return categoryService.getCategories();
     }
 
-    @QueryMapping
-    public Mono<Category> getCategory(@Argument List<String> categoryHierarchy){
-        return categoryService.getCategory(categoryHierarchy);
-    }
     @MutationMapping
     public Mono<Category> addTopCategory(@Argument Category category){
         return categoryService.addTopCategory(category);

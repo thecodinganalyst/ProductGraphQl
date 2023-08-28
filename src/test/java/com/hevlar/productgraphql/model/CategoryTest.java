@@ -10,18 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CategoryTest {
 
-    Category sofa2Seater = new Category("6", "2 Seater Sofa", List.of());
-    Category sofa = new Category("4", "Sofa", List.of(sofa2Seater));
-    Category coffeeTable = new Category("5", "Coffee Table", List.of());
-    Category livingRoom = new Category("1", "Living Room", List.of(sofa, coffeeTable));
-    Category kitchen = new Category("2", "Kitchen", List.of());
-    Category furniture = new Category("3", "Furniture", List.of(livingRoom, kitchen));
+    Category sofa2Seater = new Category("2 Seater Sofa", List.of());
+    Category sofa = new Category("Sofa", List.of(sofa2Seater));
+    Category coffeeTable = new Category("Coffee Table", List.of());
+    Category livingRoom = new Category("Living Room", List.of(sofa, coffeeTable));
+    Category kitchen = new Category("Kitchen", List.of());
+    Category furniture = new Category("Furniture", List.of(livingRoom, kitchen));
 
     @Test
     void hasSubCategoryOfName() {
-        assertThat(furniture.hasSubCategoryOfName("Living Room"), is(true));
-        assertThat(furniture.hasSubCategoryOfName("Kitchen"), is(true));
-        assertThat(furniture.hasSubCategoryOfName("Bedroom"), is(false));
+        assertThat(furniture.hasSubCategory("Living Room"), is(true));
+        assertThat(furniture.hasSubCategory("Kitchen"), is(true));
+        assertThat(furniture.hasSubCategory("Bedroom"), is(false));
     }
 
     @Test

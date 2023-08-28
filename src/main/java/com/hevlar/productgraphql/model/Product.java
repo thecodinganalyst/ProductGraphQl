@@ -1,5 +1,7 @@
 package com.hevlar.productgraphql.model;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -7,16 +9,37 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
 @Document
-public record Product(
+@Data
+@NoArgsConstructor
+public class Product{
     @Id
-    String id,
+    String id;
     @Indexed
-    String name,
-    String description,
-    List<String> imageUrls,
+    String name;
+    String description;
+    List<String> imageUrls;
     @Indexed
-    Category category,
+    List<String> category;
     @Indexed
-    List<String> tags,
-    List<Variant> variants
-) { }
+    List<String> tags;
+    List<Variant> variants;
+
+    public Product(String id, String name, String description, List<String> imageUrls, List<String> category, List<String> tags, List<Variant> variants){
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.imageUrls = imageUrls == null ? List.of() : imageUrls;
+        this.category = category;
+        this.tags = tags == null ? List.of() : tags;
+        this.variants = variants == null ? List.of() : variants;
+    }
+
+    public Product(String name, String description, List<String> imageUrls, List<String> category, List<String> tags, List<Variant> variants){
+        this.name = name;
+        this.description = description;
+        this.imageUrls = imageUrls == null ? List.of() : imageUrls;
+        this.category = category;
+        this.tags = tags == null ? List.of() : tags;
+        this.variants = variants == null ? List.of() : variants;
+    }
+}

@@ -9,18 +9,18 @@ import java.util.List;
 @Document
 @Data
 public class Category{
+
     @Id
     String id;
     String name;
     List<Category> subCategories;
 
-    public Category(String id, String name, List<Category> subCategories){
-        this.id = id;
+    public Category(String name, List<Category> subCategories){
         this.name = name;
         this.subCategories = subCategories != null ? subCategories : List.of();
     }
 
-    public boolean hasSubCategoryOfName(String name){
+    public boolean hasSubCategory(String name){
         for (Category sub: subCategories) {
             if(sub.name.equals(name)){
                 return true;

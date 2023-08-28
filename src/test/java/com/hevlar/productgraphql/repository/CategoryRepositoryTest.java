@@ -24,8 +24,8 @@ class CategoryRepositoryTest {
     @BeforeEach
     void setup(){
         categoryRepository.saveAll(Arrays.asList(
-                new Category("1", "Furniture", List.of()),
-                new Category("2", "Electronics", List.of())
+                new Category("Furniture", List.of()),
+                new Category("Electronics", List.of())
         )).blockLast();
     }
 

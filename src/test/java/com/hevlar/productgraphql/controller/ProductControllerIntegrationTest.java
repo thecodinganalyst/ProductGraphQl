@@ -36,23 +36,29 @@ public class ProductControllerIntegrationTest {
     @Autowired
     ProductRepository productRepository;
 
-    Category livingRoom = new Category("1", "Living Room", List.of());
-    Category kitchen = new Category("2", "Kitchen", List.of());
-    Category furniture = new Category("3", "Furniture", List.of(livingRoom, kitchen));
+    Category livingRoom = new Category("Living Room", List.of());
+    Category kitchen = new Category("Kitchen", List.of());
+    Category furniture = new Category("Furniture", List.of(livingRoom, kitchen));
     Product sofa1 = new Product(
-            "1",
             "Sofa 1",
             "2 seater sofa",
             List.of(),
-            livingRoom,
+            List.of("Furniture", "Living Room"),
             List.of("simple"),
             List.of());
     Product sofa2 = new Product(
-            "2",
             "Sofa 2",
             "3 seater sofa",
             List.of(),
-            livingRoom,
+            List.of("Furniture", "Living Room"),
+            List.of("luxury"),
+            List.of());
+
+    Product sofa3 = new Product(
+            "Sofa 3",
+            "L-shaped sofa",
+            List.of(),
+            List.of("Furniture", "Living Room"),
             List.of("luxury"),
             List.of());
 
@@ -77,9 +83,7 @@ public class ProductControllerIntegrationTest {
                         name
                         description
                         imageUrls
-                        category {
-                            name
-                        }
+                        category
                         tags
                     }
                 }
@@ -92,6 +96,40 @@ public class ProductControllerIntegrationTest {
                 .get();
 
         assertThat(productList.size()).isEqualTo(2);
+    }
+
+    @Test
+    void whenAddProduct_thenReturnProductAdded(){
+        Product product = this.httpGraphQlTester
+                .document("""
+                            mutation {
+                                addProduct(newProduct: {
+                                    name: "Sofa 3",
+                                    description: "L-shaped sofa",
+                                    imageUrls: [],
+                                    category: ["Furniture", "Living Room"],
+                                    tags: "luxury"
+                                }){
+                                    id
+                                    name
+                                    description
+                                    imageUrls
+                                    category
+                                    tags
+                                }
+                            }
+                        """)
+                .execute()
+                .errors()
+                .verify()
+                .path("addProduct")
+                .entity(Product.class)
+                .get();
+        assertThat(product.getName()).isEqualTo("Sofa 3");
+        assertThat(product.getDescription()).isEqualTo("L-shaped sofa");
+        assertThat(product.getImageUrls().size()).isEqualTo(0);
+        assertThat(product.getCategory()).isEqualTo(List.of("Furniture", "Living Room"));
+        assertThat(product.getTags()).isEqualTo(List.of("luxury"));
     }
 
 }

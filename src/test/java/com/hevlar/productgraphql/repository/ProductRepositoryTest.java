@@ -25,15 +25,15 @@ class ProductRepositoryTest {
     @Autowired
     CategoryRepository categoryRepository;
 
-    Category livingRoom = new Category("1", "Living Room", List.of());
-    Category kitchen = new Category("2", "Kitchen", List.of());
-    Category furniture = new Category("3", "Furniture", List.of(livingRoom, kitchen));
+    Category livingRoom = new Category("Living Room", List.of());
+    Category kitchen = new Category("Kitchen", List.of());
+    Category furniture = new Category("Furniture", List.of(livingRoom, kitchen));
     Product sofa1 = new Product(
             "1",
             "Sofa 1",
             "2 seater sofa",
             List.of(),
-            livingRoom,
+            List.of("Furniture", "Living Room"),
             List.of("simple"),
             List.of());
     Product sofa2 = new Product(
@@ -41,7 +41,7 @@ class ProductRepositoryTest {
             "Sofa 2",
             "3 seater sofa",
             List.of(),
-            livingRoom,
+            List.of("Furniture", "Living Room"),
             List.of("luxury"),
             List.of());
 
@@ -59,7 +59,7 @@ class ProductRepositoryTest {
 
     @Test
     void findAllByCategory() {
-        Flux<Product> productFlux = productRepository.findAllByCategory(livingRoom);
+        Flux<Product> productFlux = productRepository.findAllByCategory(List.of("Furniture", "Living Room"));
         StepVerifier.create(productFlux)
                 .expectNext(sofa1, sofa2)
                 .verifyComplete();

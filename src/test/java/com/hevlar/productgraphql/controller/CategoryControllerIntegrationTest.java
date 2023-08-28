@@ -244,32 +244,4 @@ public class CategoryControllerIntegrationTest {
         assertThat(sofa.getName()).isEqualTo("Sofa");
     }
 
-    @Test
-    @Order(7)
-    public void whenGetCategory_shouldReturnCorrectCategory(){
-        Category sofa = this.httpGraphQlTester.document(
-                        """
-                        query {
-                            getCategory(categoryHierarchy: ["Furniture", "Living Room", "Sofa"]) {
-                                name
-                                subCategories {
-                                    name
-                                }
-                            }
-                        }
-                        """
-                ).execute()
-                .errors()
-                .verify()
-                .path("getCategory")
-                .entity(Category.class)
-                .get();
-        assertThat(sofa.getName()).isEqualTo("Sofa");
-        assertThat(sofa.getSubCategories().size()).isEqualTo(3);
-        List<Category> sofaList = sofa.getSubCategories();
-        assertThat(sofaList).anyMatch(category -> category.getName().equals("2-seater"));
-        assertThat(sofaList).anyMatch(category -> category.getName().equals("3-seater"));
-        assertThat(sofaList).anyMatch(category -> category.getName().equals("L-Shape"));
-    }
-
 }

@@ -18,14 +18,13 @@ type Product {
     name: String!
     description: String
     imageUrls: [String!]
-    category: Category
+    category: [String!]
     tags: [String!]
     variants: [Variant!]
 }
 
 type Query {
     getCategories: [Category!]
-    getCategory(categoryHierarchy: [String!]): Category!
     getProductsByCategory(categoryHierarchy: [String!]): [Product!]
 }
 
@@ -34,7 +33,16 @@ input CategoryInput {
     subCategories: [CategoryInput!]
 }
 
+input AddProductInput {
+    name: String!
+    description: String
+    imageUrls: [String]
+    category: [String!]
+    tags: [String]
+}
+
 type Mutation {
     addTopCategory(category: CategoryInput): Category
     addCategoryToExisting(newCategory: CategoryInput, existingCategory: [String!]): Category
+    addProduct(newProduct: AddProductInput): Product
 }

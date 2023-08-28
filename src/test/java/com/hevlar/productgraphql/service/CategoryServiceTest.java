@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -28,45 +27,36 @@ class CategoryServiceTest {
     CategoryService categoryService;
 
     @Test
-    void whenGetCategory_shouldReturnCorrectly(){
-        Category categoryFromRepo = new Category(
-                "1",
-                "Furniture",
-                List.of(
-                        new Category(
-                                "2",
-                                "Living Room",
-                                List.of(new Category("3", "Sofa", List.of())))
-                )
-        );
+    void whenGetTopCategory_shouldReturnCorrectly(){
+        Category categoryFromRepo = new Category("Furniture", List.of());
         given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(categoryFromRepo));
 
-        StepVerifier.create(categoryService.getCategory(List.of("Furniture", "Living Room")))
+        StepVerifier.create(categoryService.getTopCategory("Furniture"))
                 .expectNextMatches(category ->
-                        category.getName().equals("Living Room") &&
-                        category.getSubCategories().size() == 1 &&
-                        Objects.equals(category.getSubCategories().get(0).getName(), "Sofa"))
+                        category.getName().equals("Furniture") &&
+                        category.getSubCategories().size() == 0
+                )
                 .verifyComplete();
     }
 
     @Test
-    void givenCategoryHierarchyIsNull_whenGetCategory_thenThrow(){
-        StepVerifier.create(categoryService.getCategory(null))
-                .expectErrorMessage("Category hierarchy is missing")
+    void givenCategoryNameIsNull_whenGetTopCategory_thenThrow(){
+        StepVerifier.create(categoryService.getTopCategory(null))
+                .expectErrorMessage("Category name is missing")
                 .verify();
     }
 
     @Test
-    void givenCategoryHierarchyIsEmpty_whenGetCategory_thenThrow(){
-        StepVerifier.create(categoryService.getCategory(List.of()))
-                .expectErrorMessage("Category hierarchy is missing")
+    void givenCategoryNameIsEmpty_whenGetTopCategory_thenThrow(){
+        StepVerifier.create(categoryService.getTopCategory("  "))
+                .expectErrorMessage("Category name is missing")
                 .verify();
     }
 
     @Test
     void whenGetCategories_thenCallRepoFindAll(){
-        Category cat1 = new Category("1", "Cat 1", List.of());
-        Category cat2 = new Category("2", "Cat 2", List.of());
+        Category cat1 = new Category("Cat 1", List.of());
+        Category cat2 = new Category("Cat 2", List.of());
         given(categoryRepository.findAll()).willReturn(Flux.just(cat1, cat2));
         StepVerifier.create(categoryService.getCategories())
                 .expectNext(cat1, cat2)
@@ -82,7 +72,7 @@ class CategoryServiceTest {
 
     @Test
     void givenCategoryNameIsNull_whenAddTopCategory_thenThrow(){
-        Category test = new Category("1", null, List.of());
+        Category test = new Category(null, List.of());
         StepVerifier.create(categoryService.addTopCategory(test))
                 .expectErrorMessage("Invalid category")
                 .verify();
@@ -90,7 +80,7 @@ class CategoryServiceTest {
 
     @Test
     void givenCategoryNameIsEmpty_whenAddTopCategory_thenThrow(){
-        Category test = new Category("1", "    ", List.of());
+        Category test = new Category("    ", List.of());
         StepVerifier.create(categoryService.addTopCategory(test))
                 .expectErrorMessage("Invalid category")
                 .verify();
@@ -98,7 +88,7 @@ class CategoryServiceTest {
 
     @Test
     void givenTopCategoryNameExists_whenAddTopCategory_thenThrow(){
-        Category testCategory = new Category("1", "Test", List.of());
+        Category testCategory = new Category("Test", List.of());
         given(categoryRepository.findByName("Test")).willReturn(Mono.just(testCategory));
         StepVerifier.create(categoryService.addTopCategory(testCategory))
                 .expectErrorMessage("A category with this name already exists")
@@ -107,7 +97,7 @@ class CategoryServiceTest {
 
     @Test
     void whenAddTopCategory_thenReturnCategory(){
-        Category testCategory = new Category("1", "Test", List.of());
+        Category testCategory = new Category("Test", List.of());
         given(categoryRepository.findByName("Test")).willReturn(Mono.empty());
         given(categoryRepository.save(testCategory)).willReturn(Mono.just(testCategory));
         StepVerifier.create(categoryService.addTopCategory(testCategory))
@@ -127,7 +117,7 @@ class CategoryServiceTest {
 
     @Test
     void whenExistingCategoryIsNull_whenAddCategoryToExisting_thenCategoryIsAddedAsTopCategory(){
-        Category testCategory = new Category("1", "Test", List.of());
+        Category testCategory = new Category("Test", List.of());
         given(categoryRepository.findByName("Test")).willReturn(Mono.empty());
         given(categoryRepository.save(any())).willReturn(Mono.just(testCategory));
         CategoryService spyCategoryService = spy(categoryService);
@@ -143,7 +133,7 @@ class CategoryServiceTest {
 
     @Test
     void whenExistingCategoryIsEmpty_whenAddCategoryToExisting_thenCategoryIsAddedAsTopCategory(){
-        Category testCategory = new Category("1", "Test", List.of());
+        Category testCategory = new Category("Test", List.of());
         given(categoryRepository.findByName("Test")).willReturn(Mono.empty());
         given(categoryRepository.save(any())).willReturn(Mono.just(testCategory));
         CategoryService spyCategoryService = spy(categoryService);
@@ -159,7 +149,7 @@ class CategoryServiceTest {
 
     @Test
     void whenExistingCategoryNotExist_whenAddCategoryToExisting_thenThrow(){
-        Category testCategory = new Category("1", "Test", List.of());
+        Category testCategory = new Category("Test", List.of());
         given(categoryRepository.findByName("Missing")).willReturn(Mono.empty());
 
         Mono<Category> categoryMono = categoryService.addCategoryToExisting(testCategory, List.of("Missing"));
@@ -170,8 +160,8 @@ class CategoryServiceTest {
 
     @Test
     void whenExistingCategoryTargetNotExist_whenAddCategoryToExisting_thenThrow(){
-        Category testCategory = new Category("2", "Test", List.of());
-        Category furnitureCategory = new Category("1", "Furniture", List.of());
+        Category testCategory = new Category("Test", List.of());
+        Category furnitureCategory = new Category("Furniture", List.of());
         given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(furnitureCategory));
 
         Mono<Category> categoryMono = categoryService.addCategoryToExisting(testCategory, List.of("Furniture", "Missing"));
@@ -182,8 +172,8 @@ class CategoryServiceTest {
 
     @Test
     void whenExistingCategoryAlreadyExistInTarget_whenAddCategoryToExisting_thenThrow(){
-        Category testCategory = new Category("2", "Test", List.of());
-        Category furnitureCategory = new Category("1", "Furniture", List.of(testCategory));
+        Category testCategory = new Category("Test", List.of());
+        Category furnitureCategory = new Category("Furniture", List.of(testCategory));
         given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(furnitureCategory));
 
         Mono<Category> categoryMono = categoryService.addCategoryToExisting(testCategory, List.of("Furniture"));
@@ -194,9 +184,9 @@ class CategoryServiceTest {
 
     @Test
     void whenAddCategoryToExisting_thenReturnTopCategory(){
-        Category testCategory = new Category("3", "Test", List.of());
-        Category livingRoomCategory = new Category("2", "Living Room", List.of());
-        Category furnitureCategory = new Category("1", "Furniture", List.of(livingRoomCategory));
+        Category testCategory = new Category("Test", List.of());
+        Category livingRoomCategory = new Category("Living Room", List.of());
+        Category furnitureCategory = new Category("Furniture", List.of(livingRoomCategory));
         given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(furnitureCategory));
         given(categoryRepository.save(any())).willReturn(Mono.just(furnitureCategory));
 
@@ -204,5 +194,67 @@ class CategoryServiceTest {
         StepVerifier.create(categoryMono)
                 .expectNextCount(1)
                 .verifyComplete();
+    }
+
+    @Test
+    void givenCategoryHierarchyIsValid_whenValidateCategoryHierarchy_thenReturnCategory(){
+        Category testCategory = new Category("Test", List.of());
+        Category furnitureCategory = new Category("Furniture", List.of(testCategory));
+        given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(furnitureCategory));
+
+        Mono<Category> categoryMono = categoryService.validateCategoryHierarchy(List.of("Furniture", "Test"));
+        StepVerifier.create(categoryMono)
+                .expectNext(testCategory)
+                .verifyComplete();
+    }
+
+    @Test
+    void givenCategoryHierarchyIsOnly1Level_whenValidateCategoryHierarchy_thenReturnCategory(){
+        Category furnitureCategory = new Category("Furniture", List.of());
+        given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(furnitureCategory));
+
+        Mono<Category> categoryMono = categoryService.validateCategoryHierarchy(List.of("Furniture"));
+        StepVerifier.create(categoryMono)
+                .expectNext(furnitureCategory)
+                .verifyComplete();
+    }
+
+    @Test
+    void givenMultiLevelCategoryHierarchyIsValid_whenValidateCategoryHierarchy_thenReturnCategory(){
+        Category sofaCategory = new Category("Sofa", List.of());
+        Category coffeeTableCategory = new Category("Coffee Table", List.of());
+        Category livingRoomCategory = new Category("Living Room", List.of(sofaCategory, coffeeTableCategory));
+        Category furnitureCategory = new Category("Furniture", List.of(livingRoomCategory));
+        given(categoryRepository.findByName("Furniture")).willReturn(Mono.just(furnitureCategory));
+
+        Mono<Category> categoryMono = categoryService.validateCategoryHierarchy(List.of("Furniture", "Living Room", "Sofa"));
+        StepVerifier.create(categoryMono)
+                .expectNext(sofaCategory)
+                .verifyComplete();
+    }
+
+    @Test
+    void givenCategoryHierarchyIsNull_whenValidateCategoryHierarchy_thenThrow(){
+        Mono<Category> categoryMono = categoryService.validateCategoryHierarchy(null);
+        StepVerifier.create(categoryMono)
+                .expectErrorMessage("Category hierarchy is missing")
+                .verify();
+    }
+
+    @Test
+    void givenCategoryHierarchyIsEmpty_whenValidateCategoryHierarchy_thenThrow(){
+        Mono<Category> categoryMono = categoryService.validateCategoryHierarchy(List.of());
+        StepVerifier.create(categoryMono)
+                .expectErrorMessage("Category hierarchy is missing")
+                .verify();
+    }
+
+    @Test
+    void givenCategoryHierarchyIsInvalid_whenValidateCategoryHierarchy_thenThrow(){
+        given(categoryRepository.findByName(anyString())).willReturn(Mono.empty());
+        Mono<Category> categoryMono = categoryService.validateCategoryHierarchy(List.of("something"));
+        StepVerifier.create(categoryMono)
+                .expectErrorMessage("Category not found")
+                .verify();
     }
 }

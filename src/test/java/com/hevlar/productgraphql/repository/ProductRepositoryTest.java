@@ -2,6 +2,7 @@ package com.hevlar.productgraphql.repository;
 
 import com.hevlar.productgraphql.model.Category;
 import com.hevlar.productgraphql.model.Product;
+import com.hevlar.productgraphql.model.ProductStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,8 @@ class ProductRepositoryTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("simple"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
     Product sofa2 = new Product(
             "2",
             "Sofa 2",
@@ -43,7 +45,8 @@ class ProductRepositoryTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("luxury"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
 
     @BeforeEach
     void setup(){

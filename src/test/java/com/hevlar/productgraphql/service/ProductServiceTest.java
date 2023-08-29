@@ -2,6 +2,7 @@ package com.hevlar.productgraphql.service;
 
 import com.hevlar.productgraphql.model.Category;
 import com.hevlar.productgraphql.model.Product;
+import com.hevlar.productgraphql.model.ProductStatus;
 import com.hevlar.productgraphql.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +40,8 @@ class ProductServiceTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("simple"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
     Product sofa2 = new Product(
             "2",
             "Sofa 2",
@@ -47,7 +49,8 @@ class ProductServiceTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("luxury"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
 
     Product sofa3 = new Product(
             "3",
@@ -56,7 +59,8 @@ class ProductServiceTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("luxury"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
 
     @Test
     void whenGetProductsByCategory_thenReturnProducts() {
@@ -113,7 +117,8 @@ class ProductServiceTest {
                 List.of(),
                 null,
                 List.of("luxury"),
-                List.of());
+                List.of(),
+                ProductStatus.AVAILABLE);
         StepVerifier.create(productService.addProduct(nullCategoryProduct))
                 .expectErrorMessage("Product category is null")
                 .verify();
@@ -128,7 +133,8 @@ class ProductServiceTest {
                 List.of(),
                 List.of(),
                 List.of("luxury"),
-                List.of());
+                List.of(),
+                ProductStatus.AVAILABLE);
         StepVerifier.create(productService.addProduct(emptyCategoryProduct))
                 .expectErrorMessage("Product category is null")
                 .verify();
@@ -143,7 +149,8 @@ class ProductServiceTest {
                 List.of(),
                 List.of("Something", "Else"),
                 List.of("luxury"),
-                List.of());
+                List.of(),
+                ProductStatus.AVAILABLE);
         given(categoryService.validateCategoryHierarchy(anyList()))
                 .willReturn(Mono.error(() -> new IllegalArgumentException("Category not found")));
         StepVerifier.create(productService.addProduct(invalidCategoryProduct))

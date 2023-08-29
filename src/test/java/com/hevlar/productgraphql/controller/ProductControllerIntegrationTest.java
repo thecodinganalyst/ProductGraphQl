@@ -3,6 +3,7 @@ package com.hevlar.productgraphql.controller;
 import com.hevlar.productgraphql.MongoDBTestContainerConfig;
 import com.hevlar.productgraphql.model.Category;
 import com.hevlar.productgraphql.model.Product;
+import com.hevlar.productgraphql.model.ProductStatus;
 import com.hevlar.productgraphql.repository.CategoryRepository;
 import com.hevlar.productgraphql.repository.ProductRepository;
 import org.junit.jupiter.api.*;
@@ -45,14 +46,16 @@ public class ProductControllerIntegrationTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("simple"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
     Product sofa2 = new Product(
             "Sofa 2",
             "3 seater sofa",
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("luxury"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
 
     Product sofa3 = new Product(
             "Sofa 3",
@@ -60,7 +63,8 @@ public class ProductControllerIntegrationTest {
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("luxury"),
-            List.of());
+            List.of(),
+            ProductStatus.AVAILABLE);
 
     @BeforeAll
     void setup(){
@@ -109,6 +113,7 @@ public class ProductControllerIntegrationTest {
                                     imageUrls: [],
                                     category: ["Furniture", "Living Room"],
                                     tags: "luxury"
+                                    status: AVAILABLE
                                 }){
                                     id
                                     name
@@ -116,6 +121,7 @@ public class ProductControllerIntegrationTest {
                                     imageUrls
                                     category
                                     tags
+                                    status
                                 }
                             }
                         """)
@@ -130,6 +136,7 @@ public class ProductControllerIntegrationTest {
         assertThat(product.getImageUrls().size()).isEqualTo(0);
         assertThat(product.getCategory()).isEqualTo(List.of("Furniture", "Living Room"));
         assertThat(product.getTags()).isEqualTo(List.of("luxury"));
+        assertThat(product.getStatus()).isEqualTo(ProductStatus.AVAILABLE);
     }
 
 }

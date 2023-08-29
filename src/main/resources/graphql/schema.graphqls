@@ -13,6 +13,12 @@ type Variant {
     attributeList: [Attribute!]
 }
 
+enum ProductStatus {
+    UPCOMING
+    AVAILABLE
+    DISCONTINUED
+}
+
 type Product {
     id: String!
     name: String!
@@ -21,6 +27,7 @@ type Product {
     category: [String!]
     tags: [String!]
     variants: [Variant!]
+    status: ProductStatus!
 }
 
 type Query {
@@ -39,6 +46,7 @@ input AddProductInput {
     imageUrls: [String]
     category: [String!]
     tags: [String]
+    status: ProductStatus
 }
 
 type Mutation {

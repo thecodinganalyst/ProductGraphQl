@@ -144,6 +144,8 @@ class ProductServiceTest {
                 List.of("Something", "Else"),
                 List.of("luxury"),
                 List.of());
+        given(categoryService.validateCategoryHierarchy(anyList()))
+                .willReturn(Mono.error(() -> new IllegalArgumentException("Category not found")));
         StepVerifier.create(productService.addProduct(invalidCategoryProduct))
                 .expectErrorMessage("Category not found")
                 .verify();

@@ -1,6 +1,7 @@
 package com.hevlar.productgraphql.controller;
 
 import com.hevlar.productgraphql.model.Product;
+import com.hevlar.productgraphql.model.Variant;
 import com.hevlar.productgraphql.service.ProductService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -27,5 +28,15 @@ public class ProductController {
     @MutationMapping
     public Mono<Product> addProduct(@Argument Product newProduct){
         return productService.addProduct(newProduct);
+    }
+
+    @QueryMapping
+    public Mono<Product> getProduct(@Argument String productId){
+        return productService.getProduct(productId);
+    }
+
+    @MutationMapping
+    public Mono<Product> addVariant(@Argument String productId, @Argument Variant variant){
+        return productService.addVariant(productId, variant);
     }
 }

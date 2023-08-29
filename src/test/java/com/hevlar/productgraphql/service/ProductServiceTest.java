@@ -1,8 +1,6 @@
 package com.hevlar.productgraphql.service;
 
-import com.hevlar.productgraphql.model.Category;
-import com.hevlar.productgraphql.model.Product;
-import com.hevlar.productgraphql.model.ProductStatus;
+import com.hevlar.productgraphql.model.*;
 import com.hevlar.productgraphql.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +13,10 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -156,5 +156,72 @@ class ProductServiceTest {
         StepVerifier.create(productService.addProduct(invalidCategoryProduct))
                 .expectErrorMessage("Category not found")
                 .verify();
+    }
+
+    @Test
+    void givenProductIsAvailable_whenGetProduct_thenReturnProduct(){
+        given(productRepository.findById("1")).willReturn(Mono.just(sofa1));
+        StepVerifier.create(productService.getProduct("1"))
+                .expectNext(sofa1)
+                .verifyComplete();
+    }
+
+    @Test
+    void givenProductIdIsNull_whenAddVariant_thenThrow() {
+        StepVerifier.create(productService.addVariant(null, new Variant("Variant", List.of())))
+                .expectErrorMessage("ProductId is null")
+                .verify();
+    }
+
+    @Test
+    void givenVariantIsNull_whenAddVariant_thenThrow() {
+        StepVerifier.create(productService.addVariant("123", null))
+                .expectErrorMessage("Variant is null")
+                .verify();
+    }
+
+    @Test
+    void givenProductNotFound_whenAddVariant_thenThrow(){
+        given(productRepository.findById("9")).willReturn(Mono.empty());
+        StepVerifier.create(productService.addVariant("9", new Variant("Variant", List.of())))
+                .expectErrorMessage("Product not found")
+                .verify();
+    }
+
+    @Test
+    void givenProductAlreadyHasVariantOfName_whenAddVariant_thenThrow(){
+        Variant variant1 = new Variant("Variant 1", List.of());
+        Variant variant2 = new Variant("Variant 2", List.of());
+        Product product = new Product(
+                "1",
+                "Product",
+                "Description",
+                List.of(),
+                List.of("Category"),
+                List.of("tags"),
+                List.of(variant1, variant2),
+                ProductStatus.AVAILABLE
+        );
+        given(productRepository.findById("1")).willReturn(Mono.just(product));
+        StepVerifier.create(productService.addVariant("1", variant1))
+                .expectErrorMessage("Variant name already exists")
+                .verify();
+    }
+
+    @Test
+    void whenAddVariant_thenReturnProductWithVariant(){
+        Variant blue2SeaterSofa = new Variant("blue 2 seater", List.of(
+                new Attribute("color", "blue")
+        ));
+        ProductRepository spyProductRepository = spy(productRepository);
+
+        given(spyProductRepository.findById("1")).willReturn(Mono.just(sofa1));
+        doAnswer(invocation -> Mono.just(sofa1)).when(spyProductRepository).save(any());
+        ProductService spiedProductService = new ProductService(spyProductRepository, categoryService);
+
+        StepVerifier.create(spiedProductService.addVariant("1", blue2SeaterSofa))
+                .expectNext(sofa1)
+                .verifyComplete();
+        verify(spyProductRepository, times(1)).save(any());
     }
 }

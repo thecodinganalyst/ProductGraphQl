@@ -68,8 +68,11 @@ public class ProductControllerIntegrationTest {
 
     @BeforeAll
     void setup(){
-        categoryRepository.save(furniture).block();
-        productRepository.saveAll(List.of(sofa1, sofa2)).blockLast();
+        furniture = categoryRepository.save(furniture).block();
+        List<Product> savedProductList = productRepository.saveAll(List.of(sofa1, sofa2)).collectList().block();
+        assert savedProductList != null;
+        sofa1 = savedProductList.get(0);
+        sofa2 = savedProductList.get(1);
     }
 
     @AfterAll

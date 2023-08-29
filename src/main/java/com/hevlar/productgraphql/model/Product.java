@@ -45,4 +45,8 @@ public class Product{
         this.variants = variants == null ? List.of() : variants;
         this.status = status;
     }
+
+    public boolean hasVariantOfName(String name){
+        return variants.stream().anyMatch(variant -> variant.name().equals(name));
+    }
 }

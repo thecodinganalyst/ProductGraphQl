@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
@@ -65,6 +66,14 @@ class ProductRepositoryTest {
         Flux<Product> productFlux = productRepository.findAllByCategory(List.of("Furniture", "Living Room"));
         StepVerifier.create(productFlux)
                 .expectNext(sofa1, sofa2)
+                .verifyComplete();
+    }
+
+    @Test
+    void findById(){
+        Mono<Product> productMono = productRepository.findById("2");
+        StepVerifier.create(productMono)
+                .expectNext(sofa2)
                 .verifyComplete();
     }
 }

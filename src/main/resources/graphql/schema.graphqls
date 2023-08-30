@@ -64,5 +64,5 @@ type Mutation {
     addTopCategory(category: CategoryInput): Category
     addCategoryToExisting(newCategory: CategoryInput, existingCategory: [String!]): Category
     addProduct(newProduct: AddProductInput): Product
-    addVariant(product: String!, variant: VariantInput!): Product
+    addVariant(productId: String!, variant: VariantInput!): Product
 }

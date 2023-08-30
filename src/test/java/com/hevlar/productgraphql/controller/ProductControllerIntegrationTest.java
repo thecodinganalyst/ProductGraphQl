@@ -4,6 +4,7 @@ import com.hevlar.productgraphql.MongoDBTestContainerConfig;
 import com.hevlar.productgraphql.model.Category;
 import com.hevlar.productgraphql.model.Product;
 import com.hevlar.productgraphql.model.ProductStatus;
+import com.hevlar.productgraphql.model.Variant;
 import com.hevlar.productgraphql.repository.CategoryRepository;
 import com.hevlar.productgraphql.repository.ProductRepository;
 import org.junit.jupiter.api.*;
@@ -51,15 +52,6 @@ public class ProductControllerIntegrationTest {
     Product sofa2 = new Product(
             "Sofa 2",
             "3 seater sofa",
-            List.of(),
-            List.of("Furniture", "Living Room"),
-            List.of("luxury"),
-            List.of(),
-            ProductStatus.AVAILABLE);
-
-    Product sofa3 = new Product(
-            "Sofa 3",
-            "L-shaped sofa",
             List.of(),
             List.of("Furniture", "Living Room"),
             List.of("luxury"),
@@ -140,6 +132,94 @@ public class ProductControllerIntegrationTest {
         assertThat(product.getCategory()).isEqualTo(List.of("Furniture", "Living Room"));
         assertThat(product.getTags()).isEqualTo(List.of("luxury"));
         assertThat(product.getStatus()).isEqualTo(ProductStatus.AVAILABLE);
+    }
+
+    @Test
+    void whenGetProduct_thenReturnProduct(){
+        String query = String.format("""
+                query {
+                    getProduct(productId: "%s"){
+                        id
+                        name
+                        description
+                        imageUrls
+                        category
+                        tags
+                        variants {
+                            name
+                            attributeList {
+                                key
+                                value
+                            }
+                        }
+                        status
+                    }
+                }
+                """, sofa1.getId());
+
+        Product product = this.httpGraphQlTester
+                .document(query)
+                .execute()
+                .errors()
+                .verify()
+                .path("getProduct")
+                .entity(Product.class)
+                .get();
+
+        assertThat(product).isEqualTo(sofa1);
+    }
+
+    @Test
+    void whenAddVariant_thenReturnProductWithVariant(){
+        String mutation = String.format("""
+                mutation {
+                    addVariant(
+                        productId: "%s",
+                        variant: {
+                            name: "blue 3 seater"
+                            attributeList: [
+                                {
+                                key: "colour",
+                                value: "blue"
+                                }
+                            ]
+                        }
+                    ){
+                        id
+                        name
+                        description
+                        imageUrls
+                        category
+                        tags
+                        variants {
+                            name
+                            attributeList {
+                                key
+                                value
+                            }
+                        }
+                        status
+                    }
+                }
+                """, sofa2.getId());
+        Product product = this.httpGraphQlTester
+                .document(mutation)
+                .execute()
+                .errors()
+                .verify()
+                .path("addVariant")
+                .entity(Product.class)
+                .get();
+        assertThat(product.getName()).isEqualTo(sofa2.getName());
+        List<Variant> variantList = product.getVariants();
+        assertThat(variantList.size()).isGreaterThan(0);
+        assertThat(variantList).anySatisfy(variant -> {
+            assertThat(variant.name()).isEqualTo("blue 3 seater");
+            assertThat(variant.attributeList()).anyMatch(attribute ->
+                    attribute.key().equals("colour") &&
+                    attribute.value().equals("blue")
+            );
+        });
     }
 
 }

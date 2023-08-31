@@ -20,7 +20,7 @@ enum ProductStatus {
 }
 
 type Product {
-    id: String!
+    id: ID!
     name: String!
     description: String
     imageUrls: [String!]
